@@ -1,16 +1,16 @@
 name: flutter_playfab
 description: A new Flutter package project.
-version: 0.0.1
+version: 0.1.0
 author: Sachin Ganesh<sachinganesh@outlook.com>
-homepage:
+homepage: https://github.com/SachinGanesh/flutter_playfab
 
 environment:
   sdk: ">=2.0.0-dev.68.0 <3.0.0"
 
 dependencies:
   http: ^0.12.0
-  shared_preferences: "0.4.3"
-  device_info: "0.3.0"
+  shared_preferences: ^0.4.3
+  device_info: ^0.3.0
   flutter:
     sdk: flutter
 

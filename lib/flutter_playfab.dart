@@ -28,15 +28,24 @@ class Playfab {
   ///
   /// [_titleId] : TitleID of your PlayFab app
   /// ```
-  /// var playFab = new Playfab("YOUR_PLAYFAB_ID")
+  /// var playFab = new Playfab("PLAYFAB_TITLE_ID")
   /// ```
   Playfab(this._titleId) {
     _eventQueue = new List<EventData>();
   }
-
+  /// Set debugMode
   set debugMode(bool mode) => _debugMode = mode;
+  /// if account is created
+  bool get isLoggedIn => _isLoggedIn;
 
-  ///
+  /// Login to PlayFab
+  /// Call this method in initState()
+  /// ```
+  ///   void initState() {
+  ///   ...
+  ///   playfab.logIn;
+  ///   }
+  /// ```
   Future logIn() async {
     if (!_isLoggedIn) {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -118,7 +127,7 @@ class Playfab {
     }
   }
 
-  sendEvent(String eventName, Map<String, dynamic> params) async {
+  sendEvent(String eventName, [Map<String, dynamic> params]) async {
     if (_isLoggedIn && !_isSyncing) {
       _event(eventName, params);
     } else {
