@@ -6,6 +6,13 @@ A package to integrate flutter with PlayFab
 
 Import `package:flutter_playfab/flutter_playfab.dart`, and instantiate `PlayFab`
 
+## Implemented Endpoints
+- Authentication
+  - LoginWithIOSDeviceID
+  - LoginWithAndroidDeviceID
+- Analytics
+  - WritePlayerEvent
+
 
 Example:
 
@@ -23,7 +30,7 @@ void initState() {
 //Sending events
 playfab.sendEvent("event_name");
 
-//Sending events with params
+//Sending events with Body params
 playfab.sendEvent("event_name",{"param1":1,"param2":"value2"});
 
 ```
