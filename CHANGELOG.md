@@ -1,3 +1,7 @@
+## [0.2.0] - 06/01/2019
+
+* Changed PlayFab to Static Library
+
 ## [0.1.1] - 28/12/2018
 
 * Added MIT License

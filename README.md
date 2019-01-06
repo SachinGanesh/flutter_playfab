@@ -19,18 +19,19 @@ Example:
 ```dart
 import 'package:flutter_playfab/flutter_playfab.dart';
 
-Playfab plafab = Playfab("YOUR_TITLE_ID");
-plafab.debugMode = true;
+
 
 //Logging in
 void initState() {
-    playfab.logIn();
+    Playfab.init("YOUR_TITLE_ID");
+    Playfab.debugMode = true;
+    Playfab.logIn();
 }
 
 //Sending events
-playfab.sendEvent("event_name");
+Playfab.sendEvent("event_name");
 
 //Sending events with Body params
-playfab.sendEvent("event_name",{"param1":1,"param2":"value2"});
+Playfab.sendEvent("event_name",{"param1":1,"param2":"value2"});
 
 ```

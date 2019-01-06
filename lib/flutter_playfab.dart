@@ -15,38 +15,28 @@ class EventData {
 }
 
 ///Playfab class
-class Playfab {
-  String _sessionTicket;
-  bool _createAccount = true;
-  bool _isLoggedIn = false;
-  bool _isSyncing = false;
-  bool _debugMode = false;
-  String _titleId;
-  List<EventData> _eventQueue;
+class PlayFab {
+  static String _sessionTicket;
+  static bool _createAccount = true;
+  static bool _isLoggedIn = false;
+  static bool _isSyncing = false;
+  static bool _debugMode = false;
+  static String _titleId;
+  static List<EventData> _eventQueue;
 
-  /// Create a Plafab Instance
+  /// Initialize PlayFab
   ///
-  /// [_titleId] : TitleID of your PlayFab app
-  /// ```
-  /// var playFab = new Playfab("PLAYFAB_TITLE_ID")
-  /// ```
-  Playfab(this._titleId) {
+  /// [titleId] : TitleID of your PlayFab app
+  static init(String titleId) {
     _eventQueue = new List<EventData>();
+    _titleId = titleId;
   }
   /// Set debugMode
   set debugMode(bool mode) => _debugMode = mode;
   /// if account is created
   bool get isLoggedIn => _isLoggedIn;
 
-  /// Login to PlayFab
-  /// Call this method in initState()
-  /// ```
-  ///   void initState() {
-  ///   ...
-  ///   playfab.logIn;
-  ///   }
-  /// ```
-  Future logIn() async {
+  static Future logIn() async {
     if (!_isLoggedIn) {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       _createAccount =
@@ -114,20 +104,20 @@ class Playfab {
     }
   }
 
-  Future _sendQueuedEvents() async {
+  static Future _sendQueuedEvents() async {
     if (_isLoggedIn) {
       if (_eventQueue.length > 0) {
         //reverse eventQueue
         _eventQueue = _eventQueue.reversed.toList();
         _eventQueue.forEach((events) async {
-          await this._event(events.name, events.data);
+          await _event(events.name, events.data);
         });
         _eventQueue.clear();
       }
     }
   }
 
-  sendEvent(String eventName, [Map<String, dynamic> params]) async {
+  static sendEvent(String eventName, [Map<String, dynamic> params]) async {
     if (_isLoggedIn && !_isSyncing) {
       _event(eventName, params);
     } else {
@@ -136,7 +126,7 @@ class Playfab {
     }
   }
 
-  _event(String eventName, Map<String, dynamic> params) async {
+  static _event(String eventName, Map<String, dynamic> params) async {
     var requestData = jsonEncode(params);
     if (_isLoggedIn) {
       _isSyncing = true;
