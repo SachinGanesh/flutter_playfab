@@ -12,6 +12,11 @@ class EventData {
   String name;
   dynamic data;
   EventData(this.name, this.data);
+
+  @override
+  String toString(){
+    return name;
+  }
 }
 
 ///Playfab class
@@ -108,9 +113,10 @@ class PlayFab {
     if (_isLoggedIn) {
       if (_eventQueue.length > 0) {
         //reverse eventQueue
-        _eventQueue = _eventQueue.reversed.toList();
-        _eventQueue.forEach((events) async {
-          await _event(events.name, events.data);
+        //_eventQueue = _eventQueue.reversed.toList();
+        _eventQueue.forEach((event) async {
+          print(event.name);
+          await _event(event.name, event.data);
         });
         _eventQueue.clear();
       }

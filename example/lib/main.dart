@@ -51,7 +51,10 @@ class _MyHomePageState extends State<MyHomePage> {
       // TODO: implement initState
       super.initState();
       PlayFab.init("326A"); // TOUR PLAYFAB ID GOES HERE
+      PlayFab.sendEvent("test_1");
+      PlayFab.sendEvent("test_2");
       PlayFab.logIn();
+      PlayFab.sendEvent("test_3");
     }
 
   void _incrementCounter() {
