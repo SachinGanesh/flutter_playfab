@@ -1,3 +1,6 @@
+## [0.2.2] - 09/01/2019
+* EventQueue Bug Fix
+
 ## [0.2.1] - 07/01/2019
 * Queue Sequence Bug Fix
 

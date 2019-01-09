@@ -127,6 +127,8 @@ class PlayFab {
     if (_isLoggedIn && !_isSyncing) {
       _event(eventName, params);
     } else {
+      if(_eventQueue == null)
+        _eventQueue = List<EventData>();
       _eventQueue.add(EventData(eventName, params));
       _sendQueuedEvents();
     }
