@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_playfab/flutter_playfab.dart';
+import 'package:flutter_playfab/models/request.dart';
+import 'package:flutter_playfab/models/response.dart';
 
 void main() => runApp(MyApp());
 
@@ -47,15 +49,39 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   @override
-    void initState() {
-      // TODO: implement initState
-      super.initState();
-      PlayFab.init("326A"); // TOUR PLAYFAB ID GOES HERE
-      PlayFab.sendEvent("test_1");
-      PlayFab.sendEvent("test_2",{"Name":"Hello","Year":2019,"data":{"data1":100,"data2":"2000"}});
-      PlayFab.logIn();
-      PlayFab.sendEvent("test_3");
-    }
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    PlayFabClientAPI.initialize("326A"); // YOUR PLAYFAB ID GOES HERE 326A
+    PlayFabClientAPI.debugMode  = true; 
+    PlayFabClientAPI.writePlayerEvent("test_1");
+    PlayFabClientAPI.writePlayerEvent("test_2", {
+      "Name": "Hello",
+      "Year": 2019,
+      "data": {"data1": 100, "data2": "2000"}
+    });
+    PlayFabClientAPI.login(
+      onSuccess: (LoginResult data) {
+        print("On Login Success: " + data.sessionTicket);
+        PlayFabClientAPI.getTitleData(
+          onSuccess: (TitleData titleData){
+          }
+        );
+
+        // PlayFabClientAPI.pushNotificationRegistration(request:PushNotificationRegistrationRequest(),onSuccess: () {
+        //   print("Push Registration Succesfull");
+        // },
+        // onError: (){
+        //   print("Push Registration Failure");
+        // });
+      },
+      onError: () {
+        print("On Login Failed");
+      }
+    );
+    PlayFabClientAPI.writePlayerEvent("test_3");
+    
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -66,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
-    PlayFab.sendEvent("button_clicked",{"counter":_counter});
+    PlayFabClientAPI.writePlayerEvent("button_clicked", {"counter": _counter});
   }
 
   @override

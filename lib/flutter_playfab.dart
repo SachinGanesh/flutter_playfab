@@ -3,6 +3,8 @@ library flutter_playfab;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_playfab/models/request.dart';
+import 'package:flutter_playfab/models/response.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,14 +16,15 @@ class EventData {
   EventData(this.name, this.data);
 
   @override
-  String toString(){
+  String toString() {
     return name;
   }
 }
 
 ///Playfab class
-class PlayFab {
+class PlayFabClientAPI {
   static String _sessionTicket;
+  static String _playFabId;
   static bool _createAccount = true;
   static bool _isLoggedIn = false;
   static bool _isSyncing = false;
@@ -32,16 +35,20 @@ class PlayFab {
   /// Initialize PlayFab
   ///
   /// [titleId] : TitleID of your PlayFab app
-  static init(String titleId) {
+  static initialize(String titleId) {
     _eventQueue = new List<EventData>();
     _titleId = titleId;
   }
-  /// Set debugMode
-  set debugMode(bool mode) => _debugMode = mode;
-  /// if account is created
-  bool get isLoggedIn => _isLoggedIn;
 
-  static Future logIn() async {
+  /// Set debugMode
+  static set debugMode(bool mode) => _debugMode = mode;
+
+  /// if account is created
+  static bool get isLoggedIn => _isLoggedIn;
+  static String get sessionTicket => _sessionTicket;
+  static String get playFabId => _playFabId;
+
+  static Future login({Function onSuccess, Function onError}) async {
     if (!_isLoggedIn) {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       _createAccount =
@@ -64,7 +71,7 @@ class PlayFab {
         );
       } else if (Platform.isAndroid) {
         var deviceData = await deviceInfoPlugin.androidInfo;
-          response = await http.post(
+        response = await http.post(
           'https://$_titleId.playfabapi.com/Client/LoginWithAndroidDeviceID',
           headers: {
             "Accept": "text/plain, */*; q=0.01",
@@ -81,30 +88,169 @@ class PlayFab {
       if (response.statusCode == 200) {
         if (_debugMode) debugPrint('logIn Response: success');
         var parsedData =
-            PlayFabLoginResponse.fromJson(json.decode(response.body));
+            PlayFabResultCommon.fromJson(json.decode(response.body));
         if (parsedData.code == 200) {
-          if (parsedData.data.newlyCreated) {
+          var data = LoginResult.fromJson(json.decode(parsedData.data));
+          if (data.newlyCreated) {
             if (_debugMode) debugPrint('logIn Response: Account Newly Created');
             prefs.setBool('playfab_account_created', true);
           } else {
             if (_debugMode)
               debugPrint('logIn Response: Account already exists');
           }
-          _sessionTicket = parsedData.data.sessionTicket;
+          _sessionTicket = data.sessionTicket;
+          _playFabId = data.playFabId;
           _isLoggedIn = true;
 
           /// Send events in queue
           _sendQueuedEvents();
+          if (onSuccess != null) onSuccess(data);
         } else {
           if (_debugMode)
             debugPrint('logIn Response Failed: ${parsedData.status}');
         }
-        // If server returns an OK response, parse the JSON
         return null;
       } else {
+        if (onError != null) onError();
         if (_debugMode) debugPrint('logIn Response: Failed to load');
         // If that response was not OK, throw an error.
         throw Exception('Failed to load');
+      }
+    }
+  }
+
+  static Future getTitleData({Function onSuccess, Function onError}) async {
+    if (_isLoggedIn) {
+      http.Response response;
+      var requestData = GetTitleDataRequest();
+      requestData.keys = new List<String>();
+      //requestData.keys.add("Key2");
+      response = await http.post(
+        'https://$_titleId.playfabapi.com/Client/GetTitleData',
+        headers: {
+          "Accept": "text/plain, */*; q=0.01",
+          "Content-Type": "application/json",
+          "X-Authentication": _sessionTicket
+        },
+        body: json.encode(requestData.toJson()),
+        encoding: Encoding.getByName("utf-8"),
+      );
+      if (response.statusCode == 200) {
+        if (_debugMode) debugPrint('getTitleData Response: success');
+        var parsedData =
+            PlayFabResultCommon.fromJson(json.decode(response.body));
+        if (parsedData.code == 200) {
+          TitleData titleData =
+              TitleData.fromJson(json.decode(parsedData.data));
+
+          if (onSuccess != null) onSuccess(titleData);
+        } else {
+          if (_debugMode)
+            debugPrint('getTitleData Response Failed: ${parsedData.status}');
+        }
+        return null;
+      } else {
+        if (onError != null) onError();
+        if (_debugMode) {
+          debugPrint('getTitleData Response: Failed to load');
+          print(response.statusCode);
+        }
+      }
+    }
+  }
+
+  static Future pushNotificationRegistration({
+    @required PushNotificationRegistrationRequest request,
+    Function onSuccess,
+    Function onError,
+  }) async {
+    if (Platform.isAndroid) {
+      await androidDevicePushNotificationRegistration(
+        request:
+            request,
+        onSuccess: onSuccess,
+        onError: onError,
+      );
+    } else if (Platform.isIOS) {}
+    return;
+  }
+
+  static Future androidDevicePushNotificationRegistration({
+    @required PushNotificationRegistrationRequest request,
+    Function onSuccess,
+    Function onError,
+  }) async {
+    if (_isLoggedIn) {
+      http.Response response;
+      var requestData = GetTitleDataRequest();
+      requestData.keys = new List<String>();
+      //requestData.keys.add("Key2");
+      response = await http.post(
+        'https://$_titleId.playfabapi.com/Client/AndroidDevicePushNotificationRegistration',
+        headers: {
+          "Accept": "text/plain, */*; q=0.01",
+          "Content-Type": "application/json",
+          "X-Authentication": _sessionTicket
+        },
+        body: json.encode(request.toJson()),
+        encoding: Encoding.getByName("utf-8"),
+      );
+      if (response.statusCode == 200) {
+        if (_debugMode)
+          debugPrint(
+              'androidDevicePushNotificationRegistration Response: success');
+        if (onSuccess != null) onSuccess();
+      } else {
+        if (_debugMode)
+          debugPrint(
+              'androidDevicePushNotificationRegistration Response Failed: ' + response.reasonPhrase);
+      }
+      return null;
+    } else {
+      if (onError != null) onError();
+      if (_debugMode) {
+        debugPrint(
+            'androidDevicePushNotificationRegistration Response: Failed to load');
+      }
+    }
+  }
+
+  static Future registerForIOSPushNotification({
+    @required PushNotificationRegistrationRequest request,
+    Function onSuccess,
+    Function onError,
+  }) async {
+    if (_isLoggedIn) {
+      http.Response response;
+      var requestData = GetTitleDataRequest();
+      requestData.keys = new List<String>();
+      //requestData.keys.add("Key2");
+      response = await http.post(
+        'https://$_titleId.playfabapi.com/Client/RegisterForIOSPushNotification',
+        headers: {
+          "Accept": "text/plain, */*; q=0.01",
+          "Content-Type": "application/json",
+          "X-Authentication": _sessionTicket
+        },
+        body: json.encode(request.toJson()),
+        encoding: Encoding.getByName("utf-8"),
+      );
+      if (response.statusCode == 200) {
+        if (_debugMode)
+          debugPrint(
+              'registerForIOSPushNotification Response: success');
+        if (onSuccess != null) onSuccess();
+      } else {
+        if (_debugMode)
+          debugPrint(
+              'registerForIOSPushNotification Response Failed: ' + response.reasonPhrase);
+      }
+      return null;
+    } else {
+      if (onError != null) onError();
+      if (_debugMode) {
+        debugPrint(
+            'registerForIOSPushNotification Response: Failed to load');
       }
     }
   }
@@ -123,12 +269,12 @@ class PlayFab {
     }
   }
 
-  static sendEvent(String eventName, [Map<String, dynamic> params]) async {
+  static writePlayerEvent(String eventName,
+      [Map<String, dynamic> params]) async {
     if (_isLoggedIn && !_isSyncing) {
       _event(eventName, params);
     } else {
-      if(_eventQueue == null)
-        _eventQueue = List<EventData>();
+      if (_eventQueue == null) _eventQueue = List<EventData>();
       _eventQueue.add(EventData(eventName, params));
       _sendQueuedEvents();
     }
