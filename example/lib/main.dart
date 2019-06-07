@@ -53,34 +53,37 @@ class _MyHomePageState extends State<MyHomePage> {
     // TODO: implement initState
     super.initState();
     PlayFabClientAPI.initialize("326A"); // YOUR PLAYFAB ID GOES HERE 326A
-    PlayFabClientAPI.debugMode  = true; 
+    PlayFabClientAPI.debugMode = true;
     PlayFabClientAPI.writePlayerEvent("test_1");
     PlayFabClientAPI.writePlayerEvent("test_2", {
       "Name": "Hello",
       "Year": 2019,
       "data": {"data1": 100, "data2": "2000"}
     });
-    PlayFabClientAPI.login(
-      onSuccess: (LoginResult data) {
-        print("On Login Success: " + data.sessionTicket);
-        PlayFabClientAPI.getTitleData(
-          onSuccess: (TitleData titleData){
-          }
-        );
+    PlayFabClientAPI.login(onSuccess: (LoginResult data) {
+      print("On Login Success: " + data.sessionTicket);
+      PlayFabClientAPI.getTitleData(onSuccess: (TitleData titleData) {});
 
-        // PlayFabClientAPI.pushNotificationRegistration(request:PushNotificationRegistrationRequest(),onSuccess: () {
-        //   print("Push Registration Succesfull");
-        // },
-        // onError: (){
-        //   print("Push Registration Failure");
-        // });
-      },
-      onError: () {
-        print("On Login Failed");
-      }
-    );
+      // PlayFabClientAPI.pushNotificationRegistration(request:PushNotificationRegistrationRequest(),onSuccess: () {
+      //   print("Push Registration Succesfull");
+      // },
+      // onError: (){
+      //   print("Push Registration Failure");
+      // });
+
+      PlayFabClientAPI.validateGooglePlayPurchase(
+          request: ValidateGooglePlayPurchaseRequest(
+        receiptJson:
+            "{\"orderId\":\"12999763169054705758.1375794066587622\",\"packageName\":\"com.playfab.android.testbed\",\"productId\":\"com.playfab.android.permatest.consumable\",\"purchaseTime\":1410891177231,\"purchaseState\":0,\"purchaseToken\":\"eaflhokdkobkmomjadmoobgb.AO-J1OwoLkW2cqvBcPEgk6SfGceQpOHALMUFmJYeawa-GuDFtl3oKct-5D28t_KvNscFiJOFiWXIS74vJBYg-CGFJgyrdbxalKEMPzXZrg5nLomCME-jIVFAUrzcPah-_66KPImG5ftsMJKI9uzldqEF9OPcakUEmt-kWoXAsl_6-9HH0gBCwh4\"}",
+        signature:
+            "ks12w0hHHpuit4xW3Fyoa5XX6TkxZ2KpEnBsLfpHHpeakYs2JgVtlLdgyLp/05Zp8oHAuKZyIAJTd2RIFXWMAUwDNUsI0JPBDMpr2oaL66Kuneg4VrGWJkJZTrvTyQoGpnTDdXfEME31iFKX6CrKHvWlAG9nwWxYatd58l83eevQ8CIrJhka/bC5ynw3j18OmFG7AcxymO37a4HkM8QjytvAYDJeOnDU9mooY7afcHIajtffdyAU9kzGWOqDByiU9IsRdkliwQoQYbuX/R5wQnMVZ+FGDDwO1mybx9B20rm7/WCBnWGy2NLsSAFI77iX8tUy/QebfBQhrVnRORi7bw==",
+        currencyCode: "USD",
+        purchasePrice: 70,
+      ));
+    }, onError: () {
+      print("On Login Failed");
+    });
     PlayFabClientAPI.writePlayerEvent("test_3");
-    
   }
 
   void _incrementCounter() {

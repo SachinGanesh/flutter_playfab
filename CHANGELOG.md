@@ -1,3 +1,7 @@
+## [0.3.6] - 01/05/2019
+* added validateGooglePlayPurchase
+  
+
 ## [0.3.5] - 03/02/2019
 * Static Bug Fix
 

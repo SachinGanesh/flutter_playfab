@@ -46,6 +46,9 @@ class PlayFabClientAPI {
   /// if account is created
   static bool get isLoggedIn => _isLoggedIn;
   static String get sessionTicket => _sessionTicket;
+  static String set sessionTicket(String value) {
+    _sessionTicket = value;
+  }
   static String get playFabId => _playFabId;
 
   static Future login({Function onSuccess, Function onError}) async {
@@ -102,6 +105,8 @@ class PlayFabClientAPI {
           _playFabId = data.playFabId;
           _isLoggedIn = true;
 
+          prefs.setString("playfab_session_ticket", _sessionTicket);
+
           /// Send events in queue
           _sendQueuedEvents();
           if (onSuccess != null) onSuccess(data);
@@ -157,6 +162,10 @@ class PlayFabClientAPI {
         }
       }
     }
+  }
+
+  static Future executeCloudScript(){
+    
   }
 
   static Future pushNotificationRegistration({
@@ -254,6 +263,45 @@ class PlayFabClientAPI {
       }
     }
   }
+
+  static Future<void> validateGooglePlayPurchase({
+    @required ValidateGooglePlayPurchaseRequest request,
+    Function onSuccess,
+    Function onError,
+  }) async {
+    if (_isLoggedIn) {
+      http.Response response;
+      //requestData.keys.add("Key2");
+      response = await http.post(
+        'https://$_titleId.playfabapi.com/Client/ValidateGooglePlayPurchase',
+        headers: {
+          "Accept": "text/plain, */*; q=0.01",
+          "Content-Type": "application/json",
+          "X-Authentication": _sessionTicket
+        },
+        body: json.encode(request.toJson()),
+        encoding: Encoding.getByName("utf-8"),
+      );
+      if (response.statusCode == 200) {
+        if (_debugMode)
+          debugPrint(
+              'validateGooglePlayPurchase Response: success');
+        if (onSuccess != null) onSuccess();
+      } else {
+        if (_debugMode)
+          debugPrint(
+              'validateGooglePlayPurchase Response Failed: ' + response.reasonPhrase);
+      }
+      return null;
+    } else {
+      if (onError != null) onError();
+      if (_debugMode) {
+        debugPrint(
+            'validateGooglePlayPurchase Response: Failed to load');
+      }
+    }
+  }
+
 
   static Future _sendQueuedEvents() async {
     if (_isLoggedIn) {
