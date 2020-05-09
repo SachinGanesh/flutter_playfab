@@ -46,9 +46,10 @@ class PlayFabClientAPI {
   /// if account is created
   static bool get isLoggedIn => _isLoggedIn;
   static String get sessionTicket => _sessionTicket;
-  static String set sessionTicket(String value) {
+  static set sessionTicket(String value) {
     _sessionTicket = value;
   }
+
   static String get playFabId => _playFabId;
 
   static Future login({Function onSuccess, Function onError}) async {
@@ -74,7 +75,8 @@ class PlayFabClientAPI {
         );
       } else if (Platform.isAndroid) {
         var deviceData = await deviceInfoPlugin.androidInfo;
-        response = await http.post(
+        response = await http
+            .post(
           'https://$_titleId.playfabapi.com/Client/LoginWithAndroidDeviceID',
           headers: {
             "Accept": "text/plain, */*; q=0.01",
@@ -83,7 +85,10 @@ class PlayFabClientAPI {
           body:
               '{"AndroidDeviceId": "${deviceData.androidId}","OS": "${deviceData.version}","AndroidDevice": "${deviceData.model}","CreateAccount": $_createAccount,"TitleId": "$_titleId"}',
           encoding: Encoding.getByName("utf-8"),
-        );
+        )
+            .catchError((Object error) {
+          throw Exception("Unknown Error");
+        });
       } else {
         throw Exception("Unknown Platform");
       }
@@ -164,9 +169,7 @@ class PlayFabClientAPI {
     }
   }
 
-  static Future executeCloudScript(){
-    
-  }
+  static Future executeCloudScript() {}
 
   static Future pushNotificationRegistration({
     @required PushNotificationRegistrationRequest request,
@@ -175,8 +178,7 @@ class PlayFabClientAPI {
   }) async {
     if (Platform.isAndroid) {
       await androidDevicePushNotificationRegistration(
-        request:
-            request,
+        request: request,
         onSuccess: onSuccess,
         onError: onError,
       );
@@ -212,7 +214,8 @@ class PlayFabClientAPI {
       } else {
         if (_debugMode)
           debugPrint(
-              'androidDevicePushNotificationRegistration Response Failed: ' + response.reasonPhrase);
+              'androidDevicePushNotificationRegistration Response Failed: ' +
+                  response.reasonPhrase);
       }
       return null;
     } else {
@@ -246,20 +249,18 @@ class PlayFabClientAPI {
       );
       if (response.statusCode == 200) {
         if (_debugMode)
-          debugPrint(
-              'registerForIOSPushNotification Response: success');
+          debugPrint('registerForIOSPushNotification Response: success');
         if (onSuccess != null) onSuccess();
       } else {
         if (_debugMode)
-          debugPrint(
-              'registerForIOSPushNotification Response Failed: ' + response.reasonPhrase);
+          debugPrint('registerForIOSPushNotification Response Failed: ' +
+              response.reasonPhrase);
       }
       return null;
     } else {
       if (onError != null) onError();
       if (_debugMode) {
-        debugPrint(
-            'registerForIOSPushNotification Response: Failed to load');
+        debugPrint('registerForIOSPushNotification Response: Failed to load');
       }
     }
   }
@@ -284,24 +285,21 @@ class PlayFabClientAPI {
       );
       if (response.statusCode == 200) {
         if (_debugMode)
-          debugPrint(
-              'validateGooglePlayPurchase Response: success');
+          debugPrint('validateGooglePlayPurchase Response: success');
         if (onSuccess != null) onSuccess();
       } else {
         if (_debugMode)
-          debugPrint(
-              'validateGooglePlayPurchase Response Failed: ' + response.reasonPhrase);
+          debugPrint('validateGooglePlayPurchase Response Failed: ' +
+              response.reasonPhrase);
       }
       return null;
     } else {
       if (onError != null) onError();
       if (_debugMode) {
-        debugPrint(
-            'validateGooglePlayPurchase Response: Failed to load');
+        debugPrint('validateGooglePlayPurchase Response: Failed to load');
       }
     }
   }
-
 
   static Future _sendQueuedEvents() async {
     if (_isLoggedIn) {
@@ -333,26 +331,28 @@ class PlayFabClientAPI {
     if (_isLoggedIn) {
       _isSyncing = true;
       //if(_debugMode) debugPrint('playfab event: Data: ' + requestData);
-      final response = await http.post(
-        'https://$_titleId.playfabapi.com/Client/WritePlayerEvent',
-        headers: {
-          "Accept": "text/plain, */*; q=0.01",
-          "Content-Type": "application/json",
-          "X-Authentication": _sessionTicket,
-        },
-        body: '{"EventName": "$eventName","Body": $requestData}',
-        encoding: Encoding.getByName("utf-8"),
-      );
-      _isSyncing = false;
-      if (response.statusCode == 200) {
-        if (_debugMode) debugPrint('log event: success');
-        // If server returns an OK response, parse the JSON
-        return null;
-      } else {
-        if (_debugMode) debugPrint('log event: Failed to load');
-        // If that response was not OK, throw an error.
-        throw Exception('Failed to load');
-      }
+      try {
+        final response = await http.post(
+          'https://$_titleId.playfabapi.com/Client/WritePlayerEvent',
+          headers: {
+            "Accept": "text/plain, */*; q=0.01",
+            "Content-Type": "application/json",
+            "X-Authentication": _sessionTicket,
+          },
+          body: '{"EventName": "$eventName","Body": $requestData}',
+          encoding: Encoding.getByName("utf-8"),
+        );
+        _isSyncing = false;
+        if (response.statusCode == 200) {
+          if (_debugMode) debugPrint('log event: success');
+          // If server returns an OK response, parse the JSON
+          return null;
+        } else {
+          if (_debugMode) debugPrint('log event: Failed to load');
+          // If that response was not OK, throw an error.
+          throw Exception('Failed to load');
+        }
+      } catch (e) {}
     }
   }
 }
