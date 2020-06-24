@@ -9,6 +9,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:device_info/device_info.dart';
+import 'package:universal_platform/universal_platform.dart';
+import 'package:uuid/uuid.dart';
 
 class EventData {
   String name;
@@ -61,7 +63,7 @@ class PlayFabClientAPI {
       if (_debugMode)
         debugPrint("Creating new Account: " + _createAccount.toString());
       http.Response response;
-      if (Platform.isIOS) {
+      if (UniversalPlatform.isIOS) {
         var deviceData = await deviceInfoPlugin.iosInfo;
         response = await http.post(
           'https://$_titleId.playfabapi.com/Client/LoginWithIOSDeviceID',
@@ -73,7 +75,7 @@ class PlayFabClientAPI {
               '{"DeviceId": "${deviceData.identifierForVendor}","OS": "${deviceData.systemVersion}","DeviceModel": "${deviceData.model}","CreateAccount": $_createAccount,"TitleId": "$_titleId"}',
           encoding: Encoding.getByName("utf-8"),
         );
-      } else if (Platform.isAndroid) {
+      } else if (UniversalPlatform.isAndroid) {
         var deviceData = await deviceInfoPlugin.androidInfo;
         response = await http
             .post(
@@ -84,6 +86,27 @@ class PlayFabClientAPI {
           },
           body:
               '{"AndroidDeviceId": "${deviceData.androidId}","OS": "${deviceData.version}","AndroidDevice": "${deviceData.model}","CreateAccount": $_createAccount,"TitleId": "$_titleId"}',
+          encoding: Encoding.getByName("utf-8"),
+        )
+            .catchError((Object error) {
+          throw Exception("Unknown Error");
+        });
+      } else if (UniversalPlatform.isWeb) {
+        String uuid = prefs.getString("uuid");
+        if (uuid == null) {
+          uuid = Uuid().v4();
+          prefs.setString("uuid", uuid);
+        }
+
+        response = await http
+            .post(
+          'https://$_titleId.playfabapi.com/Client/LoginWithCustomID',
+          headers: {
+            "Accept": "text/plain, */*; q=0.01",
+            "Content-Type": "application/json",
+          },
+          body:
+              '{"CustomId": "${uuid}","CreateAccount": $_createAccount,"TitleId": "$_titleId"}',
           encoding: Encoding.getByName("utf-8"),
         )
             .catchError((Object error) {
@@ -176,13 +199,13 @@ class PlayFabClientAPI {
     Function onSuccess,
     Function onError,
   }) async {
-    if (Platform.isAndroid) {
+    if (UniversalPlatform.isAndroid) {
       await androidDevicePushNotificationRegistration(
         request: request,
         onSuccess: onSuccess,
         onError: onError,
       );
-    } else if (Platform.isIOS) {}
+    } else if (UniversalPlatform.isIOS) {}
     return;
   }
 

@@ -1,3 +1,6 @@
+## [0.4.0] - 24/06/2020
+* added universal Platfrom Support
+
 ## [0.3.6] - 01/05/2019
 * added validateGooglePlayPurchase
   
