@@ -70,7 +70,12 @@ class _MyHomePageState extends State<MyHomePage> {
       // onError: (){
       //   print("Push Registration Failure");
       // });
+      PlayFabClientAPI.getPlayerData(onSuccess: (PlayerData playerData) {
 
+        print(playerData.data.values.toString());
+        entryList = playerData.data.values.toList();
+
+      });
       PlayFabClientAPI.validateGooglePlayPurchase(
           request: ValidateGooglePlayPurchaseRequest(
         receiptJson:
