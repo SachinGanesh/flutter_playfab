@@ -192,6 +192,45 @@ class PlayFabClientAPI {
     }
   }
 
+  static Future getPlayerData({Function onSuccess, Function onError}) async {
+    if (_isLoggedIn) {
+      http.Response response;
+      var requestData = GetPlayerDataRequest();
+      requestData.keys = new List<String>();
+      response = await http.post(
+        'https://$_titleId.playfabapi.com/Client/GetUserData',
+        headers: {
+          "Accept": "text/plain, */*; q=0.01",
+          "Content-Type": "application/json",
+          "X-Authentication": _sessionTicket
+        },
+        body: json.encode(requestData.toJson()),
+        encoding: Encoding.getByName("utf-8"),
+      );
+      if (response.statusCode == 200) {
+        if (_debugMode) debugPrint('getPlayerData Response: success');
+        var parsedData =
+        PlayFabResultCommon.fromJson(json.decode(response.body));
+        if (parsedData.code == 200) {
+          PlayerData playerData =
+          PlayerData.fromJson(json.decode(parsedData.data));
+
+          if (onSuccess != null) onSuccess(playerData);
+        } else {
+          if (_debugMode)
+            debugPrint('getTitleData Response Failed: ${parsedData.status}');
+        }
+        return null;
+      } else {
+        if (onError != null) onError();
+        if (_debugMode) {
+          debugPrint('getPlayerData Response: Failed to load');
+          print(response.statusCode);
+        }
+      }
+    }
+  }
+
   static Future executeCloudScript() {}
 
   static Future pushNotificationRegistration({

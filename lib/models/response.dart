@@ -47,6 +47,24 @@ class TitleData {
   }
 }
 
+class PlayerData {
+  Map<String, dynamic> data;
+
+  PlayerData({this.data});
+
+  PlayerData.fromJson(Map<String, dynamic> jsonData) {
+    data = jsonData['Data'] != null ? jsonData['Data'] : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    if (this.data != null) {
+      data['Data'] = this.data;
+    }
+    return data;
+  }
+}
+
 class LoginResult {
   String sessionTicket;
   String playFabId;

@@ -14,6 +14,22 @@ class GetTitleDataRequest {
   }
 }
 
+class GetPlayerDataRequest {
+  List<String> keys;
+
+  GetPlayerDataRequest({this.keys});
+
+  GetPlayerDataRequest.fromJson(Map<String, dynamic> json) {
+    keys = json['Keys'].cast<String>();
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['Keys'] = this.keys;
+    return data;
+  }
+}
+
 class PushNotificationRegistrationRequest {
   String deviceToken;
   bool sendPushNotificationConfirmation;
